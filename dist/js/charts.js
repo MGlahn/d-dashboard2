@@ -59,6 +59,15 @@ var nasdaqTable = dc.dataTable('.dc-data-table');
 //d3.json('data.json', function(data) {...};
 //jQuery.getJson('data.json', function(data){...});
 //```
+
+//Original structure:
+//"date","open","high","low","close","volume","oi"
+//11/01/1985,115.48,116.78,115.48,116.28,900900,0
+
+//New structure:
+//Consignee,ContainerType,ShipmentType,OriginService,DestinationService,ETD,Measurement,OriginCountry,DestinationCountry
+//BENIKE2   ,DRY ,          OCE,        CFS,            CFS,       2014-01-20, 0.0000000000, MY,        PP
+
 d3.csv('../dist/ndx.csv', function (data) {
     // Since its a csv file we need to format the data a bit.
     var dateFormat = d3.time.format('%m/%d/%Y');
