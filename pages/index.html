@@ -375,8 +375,9 @@
                 <div class="col-lg-12">
                     <h1 class="page-header">Dashboard</h1>
                 </div>
-                <!-- /.col-lg-12 -->
-                <div class="col-lg-12">
+            </div>
+            <div class="row">
+                <div class="col-lg-8">
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <i class="fa fa-bar-chart-o fa-fw"></i> Volume by month
@@ -412,12 +413,10 @@
                         <!-- /.panel-body -->
                     </div>
                     <!-- /.panel -->
-                </div>
-                <!-- /.col-lg-12 -->
-            </div>
-            <!-- /.row -->
-            <div class="row">
-                <div class="col-lg-8">
+<!--                </div>-->
+                <!-- /.col-lg-8 -->
+
+<!--                <div class="col-lg-8">-->
                     <!-- /.panel -->
                     <div class="panel panel-default">
                         <div class="panel-heading">
@@ -507,14 +506,65 @@
                         <!-- /.panel-body -->
                     </div>
                     <!-- /.panel -->
+                    <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <i class="fa fa-area-chart fa-fw"></i> Area chart
+                            </div>
+                            <!-- /.panel-heading -->
+                            <div class="panel-body">
+                                <div id="monthly-move-chart">
+                                    <strong>Monthly Index Abs Move &amp; Volume/500,000 Chart</strong>
+                                    <span class="reset" style="display: none;">range: <span class="filter"></span></span>
+                                    <a class="reset" href="javascript:moveChart.filterAll();volumeChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+                                    <div class="clearfix"></div>
+                                </div>
+                            </div>
+                            <!-- /.panel-body -->
+                        </div>
+                        <!-- /.panel -->
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <i class="fa fa-table fa-fw"></i> Responsive Table
+                            </div>
+                            <!-- /.panel-heading -->
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="dc-data-count col-lg-12">
+                                        <span class="filter-count"></span> selected out of <span class="total-count"></span> records | <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
+                                    </div>
+
+                                    <div class="table-responsive col-lg-12">
+                                        <table class="table table-bordered table-hover table-striped dc-data-table">
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- /.row -->
+                            </div>
+                            <!-- /.panel-body -->
+                        </div>
+                        <!-- /.panel -->
+                    </div>
                 </div>
                 <div class="col-lg-4">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <i class="fa fa-table fa-fw"></i> Responsive Table
+                            <i class="fa fa-bar-chart-o fa-fw"></i> Countries
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
+                            
+                            <div id="origin-countries-chart">
+                                        <strong>Origin countries/volume</strong>
+                                        <a class="reset" href="javascript:originCountriesChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+                                        <div class="clearfix"></div>
+                                    </div>
+                             <div id="dest-countries-chart">
+                                        <strong>Destination countries/volume</strong>
+                                        <a class="reset" href="javascript:destinationCountriesChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+                                        <div class="clearfix"></div>
+                                    </div>
+<!--
                             <div class="table-responsive">
                                 <table class="table table-bordered table-hover table-striped">
                                     <thead>
@@ -541,6 +591,7 @@
                                     </tbody>
                                 </table>
                             </div>
+-->
                             <!-- /.table-responsive -->
                         </div>
                         <!-- /.panel-body -->
@@ -551,45 +602,6 @@
             </div>
             <!-- /.row -->
             <div class="row">
-                <div class="col-lg-12">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <i class="fa fa-area-chart fa-fw"></i> Area chart
-                        </div>
-                        <!-- /.panel-heading -->
-                        <div class="panel-body">
-                            <div id="monthly-move-chart">
-                                <strong>Monthly Index Abs Move &amp; Volume/500,000 Chart</strong>
-                                <span class="reset" style="display: none;">range: <span class="filter"></span></span>
-                                <a class="reset" href="javascript:moveChart.filterAll();volumeChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
-                                <div class="clearfix"></div>
-                            </div>
-                        </div>
-                        <!-- /.panel-body -->
-                    </div>
-                    <!-- /.panel -->
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <i class="fa fa-table fa-fw"></i> Responsive Table
-                        </div>
-                        <!-- /.panel-heading -->
-                        <div class="panel-body">
-                            <div class="row">
-                                <div class="dc-data-count col-lg-12">
-                                    <span class="filter-count"></span> selected out of <span class="total-count"></span> records | <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
-                                </div>
-
-                                <div class="table-responsive col-lg-12">
-                                    <table class="table table-bordered table-hover table-striped dc-data-table">
-                                    </table>
-                                </div>
-                            </div>
-                            <!-- /.row -->
-                        </div>
-                        <!-- /.panel-body -->
-                    </div>
-                    <!-- /.panel -->
-                </div>
                 <!-- /.col-lg-12 -->
             </div>
             <!-- /.row -->

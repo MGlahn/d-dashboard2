@@ -28,6 +28,8 @@ var shipmentTypesChart = dc.pieChart('#shipment-types-chart');
 var dayOfWeekChart = dc.rowChart('#day-of-week-chart');
 var originServicesChart = dc.rowChart('#originservices-chart');
 var destinationServicesChart = dc.rowChart('#destinationservices-chart');
+var originCountriesChart = dc.rowChart('#origin-countries-chart');
+var destinationCountriesChart = dc.rowChart('#dest-countries-chart');
 
 //### Load your data
 
@@ -39,7 +41,7 @@ var destinationServicesChart = dc.rowChart('#destinationservices-chart');
 //Consignee,ContainerType,ShipmentType,OriginService,DestinationService,ETD,Measurement,OriginCountry,DestinationCountry
 //BENIKE2   ,DRY ,          OCE,        CFS,            CFS,       2014-01-20, 0.0000000000, MY,        PP
 
-d3.csv('../dist/BATBI-N-changed.csv', function (data) {
+d3.csv('../dist/BATBI-n-changed.csv', function (data) {
     // Since its a csv file we need to format the data a bit.
     var dateFormat = d3.time.format('%Y-%m-%d');
     var numberFormat = d3.format('.2f');
@@ -61,46 +63,23 @@ d3.csv('../dist/BATBI-N-changed.csv', function (data) {
     var yearlyDimension = nikeData.dimension(function (d) {
         return d3.time.year(d.dd).getFullYear();
     });
+//    
+////    var yearlyDimensionGroup = nikeData.yearlyDimension(function (d) {
+////        return d3.time.year(d.dd).getFullYear();
+////    });
+//    var countMeasure = yearlyDimension.group().reduceCount();
+//    //print_filter(countMeasure);
+//    
+//    var countMeasure2 = yearlyDimension.group().reduceSum(function(fact) { return fact.Measurement; });
+//    print_filter(countMeasure2);
+//    
+//    var legMeasure = yearlyDimension.group().reduceCount(function(fact) { return fact.OriginService; });
+//var a = legMeasure.top(4);
+//    console.log(a);
+//console.log('There are'+ a[0].value + ' ' +a[0].key + 'legs in my house.');
+//console.log('There are'+ a[1].value + ' ' +a[1].key + 'legs in my house.');
 
-
-    // Maintain running tallies by year as filters are applied or removed
-    var yearlyPerformanceGroup = yearlyDimension.group().reduce(
-        /* callback for when data is added to the current filter results */
-        function (p, v) {
-            ++p.count;
-            p.absGain += v.close - v.open;
-            p.fluctuation += Math.abs(v.close - v.open);
-            p.sumIndex += (v.open + v.close) / 2;
-            p.avgIndex = p.sumIndex / p.count;
-            p.percentageGain = p.avgIndex ? (p.absGain / p.avgIndex) * 100 : 0;
-            p.fluctuationPercentage = p.avgIndex ? (p.fluctuation / p.avgIndex) * 100 : 0;
-            return p;
-        },
-        /* callback for when data is removed from the current filter results */
-        function (p, v) {
-            --p.count;
-            p.absGain -= v.close - v.open;
-            p.fluctuation -= Math.abs(v.close - v.open);
-            p.sumIndex -= (v.open + v.close) / 2;
-            p.avgIndex = p.count ? p.sumIndex / p.count : 0;
-            p.percentageGain = p.avgIndex ? (p.absGain / p.avgIndex) * 100 : 0;
-            p.fluctuationPercentage = p.avgIndex ? (p.fluctuation / p.avgIndex) * 100 : 0;
-            return p;
-        },
-        /* initialize p */
-        function () {
-            return {
-                count: 0,
-                absGain: 0,
-                fluctuation: 0,
-                fluctuationPercentage: 0,
-                sumIndex: 0,
-                avgIndex: 0,
-                percentageGain: 0
-            };
-        }
-    );
-
+    
     // Dimension by full date
     var dateDimension = nikeData.dimension(function (d) {
         return d.dd;
@@ -111,28 +90,14 @@ d3.csv('../dist/BATBI-N-changed.csv', function (data) {
     var maxDate = dateDimension.top(1)[0].dd;
 
     // Dimension by month
-    var moveMonths = nikeData.dimension(function (d) {
+    var byMonth = nikeData.dimension(function (d) {
         return d.month;
     });
 
-    // Group by total movement within month
-    var monthlyMoveGroup = moveMonths.group().reduceSum(function (d) {
-        return Math.abs(d.close - d.open);
-    });
-    // Group by total volume within move, and scale down result
-    //    var volumeByMonthGroup = moveMonths.group().reduceSum(function (d) {
-    //        return d.Measurement / 500000;
-    //    });
-
-    var volumeByMonthGroup = moveMonths.group().reduceSum(function (d) {
+    var volumeByMonthGroup = byMonth.group().reduceSum(function (d) {
         return d.Measurement;
     });
-
-    // Determine a histogram of percent changes
-    //    var fluctuation = nikeData.dimension(function (d) {
-    //        return Math.round((d.close - d.open) / d.open * 100);
-    //    });
-    //    var fluctuationGroup = fluctuation.group();
+    
 
     // Summarize volume by quarter
     var quarter = nikeData.dimension(function (d) {
@@ -156,7 +121,7 @@ d3.csv('../dist/BATBI-N-changed.csv', function (data) {
         return d.ContainerType;
     });
     var containerTypesGroup = containerTypes.group();
-
+    
     var shipmentTypes = nikeData.dimension(function (d) {
         return d.ShipmentType;
     });
@@ -180,7 +145,20 @@ d3.csv('../dist/BATBI-N-changed.csv', function (data) {
     });
     var dayOfWeekGroup = dayOfWeek.group();
 
-    nVolumeChart.width(990)
+    var originCountries = nikeData.dimension(function (d) {
+        return d.OriginCountry;
+    });
+    var originCountriesGroup = originCountries.group();
+    
+    var destCountries = nikeData.dimension(function (d) {
+        return d.DestinationCountry;
+    });
+    
+    var destCountriesGroup = destCountries.group();
+//Wanted to use only top 20 for the chart, but was causing an error. Could be a good idea to fix it
+//    var destCountriesTop20 = destCountries.top(20);
+    
+    nVolumeChart.width(700)
         .height(140)
         .margins({
             top: 0,
@@ -188,7 +166,7 @@ d3.csv('../dist/BATBI-N-changed.csv', function (data) {
             bottom: 20,
             left: 50
         })
-        .dimension(moveMonths)
+        .dimension(byMonth)
         .group(volumeByMonthGroup)
         .centerBar(true)
         .gap(1)
@@ -304,6 +282,51 @@ d3.csv('../dist/BATBI-N-changed.csv', function (data) {
         .elasticX(true)
         .xAxis().ticks(4);
 
+    originCountriesChart
+        .width(250)
+        .height(originCountriesGroup.size() * 17 + 40)
+        .margins({
+            top: 20,
+            left: 10,
+            right: 10,
+            bottom: 20
+        })
+        .gap(2)
+        .fixedBarHeight(15)
+        .group(originCountriesGroup)
+        .dimension(originCountries)
+        .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef'])
+        .label(function (d) {
+            return d.key;
+        })
+        .title(function (d) {
+            return d.value;
+        })
+        .elasticX(true)
+        .xAxis().ticks(4);
+    
+    destinationCountriesChart
+        .width(250)
+        .height(destCountriesGroup.size() * 17 + 40)
+        .margins({
+            top: 20,
+            left: 10,
+            right: 10,
+            bottom: 20
+        })
+        .gap(2)
+        .fixedBarHeight(15)
+        .group(destCountriesGroup)
+        .dimension(destCountries)
+        .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef'])
+        .label(function (d) {
+            return d.key;
+        })
+        .title(function (d) {
+            return d.value;
+        })
+        .elasticX(true)
+        .xAxis().ticks(4);
     //#### Rendering
 
     //simply call `.renderAll()` to render all charts on the page
