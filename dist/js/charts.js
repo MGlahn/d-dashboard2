@@ -152,7 +152,7 @@ d3.csv('../dist/BATBI-big.csv', function (data) {
     nVolumeChart.width(650)
         .height(140)
         .margins({
-            top: 0,
+            top: 5,
             right: 50,
             bottom: 20,
             left: 50
