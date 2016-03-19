@@ -1,7 +1,8 @@
 //# dc.js Getting Started and How-To Guide
 'use strict';
+var chartColours = ['#658c9d','#59b5dd', '#a5e0ec', '#90c380', '#36b265', '#33764a'];
 
-
+//To debug/print filters
 function print_filter(filter) {
     var f = eval(filter);
     if (typeof (f.length) != "undefined") {} else {}
@@ -30,77 +31,66 @@ var originServicesChart = dc.rowChart('#originservices-chart');
 var destinationServicesChart = dc.rowChart('#destinationservices-chart');
 var originCountriesChart = dc.rowChart('#origin-countries-chart');
 var destinationCountriesChart = dc.rowChart('#dest-countries-chart');
+var nCount = dc.dataCount('.dc-data-count');
+var dataTable = dc.dataTable('.dc-data-table');
 
 //### Load your data
 
-//Original structure:
-//"date","open","high","low","close","volume","oi"
-//11/01/1985,115.48,116.78,115.48,116.28,900900,0
-
-//New structure:
+//Data structure:
 //Consignee,ContainerType,ShipmentType,OriginService,DestinationService,ETD,Measurement,OriginCountry,DestinationCountry
-//BENIKE2   ,DRY ,          OCE,        CFS,            CFS,       2014-01-20, 0.0000000000, MY,        PP
+//Customer1,DRY ,OCE,CFS, CFS,11/01/2014, 0.0000000000, MY,PP
 
-d3.csv('../dist/BATBI-n-changed.csv', function (data) {
+//To test with a smaller file use BATBI-N-changed.csv. Obs! data has been changed, so not representative
+
+d3.csv('../dist/BATBI-big.csv', function (data) {
     // Since its a csv file we need to format the data a bit.
-    var dateFormat = d3.time.format('%Y-%m-%d');
+    //Dateformat with BATBI-N-changed.csv:
+    //var dateFormat = d3.time.format('%Y-%m-%d');
+
+    var dateFormat = d3.time.format('%d/%m/%Y');
     var numberFormat = d3.format('.2f');
 
     data.forEach(function (d) {
-        d.dd = dateFormat.parse(d.ETD);
-        d.month = d3.time.month(d.dd); // pre-calculate month for better performance
-        d.close = +d.close; // coerce to number
-        d.open = +d.open;
+            d.dd = dateFormat.parse(d.ETD);
+            d.month = d3.time.month(d.dd); // pre-calculate month for better performance
+        if(d.DestinationService !== "CY" && d.DestinationService !== "CFS" && d.DestinationService !== "CY " && d.DestinationService !== "CFS "){
+            d.DestinationService = "Unknown"
+        }
+        if(d.OriginService !== "CY" && d.OriginService !== "CFS" && d.OriginService !== "CY " && d.OriginService !== "CFS "){
+            d.OriginService = "Unknown"
+        }
     });
-
+    
     //### Create Crossfilter Dimensions and Groups
 
     //See the [crossfilter API](https://github.com/square/crossfilter/wiki/API-Reference) for reference.
-    var nikeData = crossfilter(data);
-    var all = nikeData.groupAll();
+    var nData = crossfilter(data);
+    var all = nData.groupAll();
 
     // Dimension by year
-    var yearlyDimension = nikeData.dimension(function (d) {
+    var yearlyDimension = nData.dimension(function (d) {
         return d3.time.year(d.dd).getFullYear();
     });
-//    
-////    var yearlyDimensionGroup = nikeData.yearlyDimension(function (d) {
-////        return d3.time.year(d.dd).getFullYear();
-////    });
-//    var countMeasure = yearlyDimension.group().reduceCount();
-//    //print_filter(countMeasure);
-//    
-//    var countMeasure2 = yearlyDimension.group().reduceSum(function(fact) { return fact.Measurement; });
-//    print_filter(countMeasure2);
-//    
-//    var legMeasure = yearlyDimension.group().reduceCount(function(fact) { return fact.OriginService; });
-//var a = legMeasure.top(4);
-//    console.log(a);
-//console.log('There are'+ a[0].value + ' ' +a[0].key + 'legs in my house.');
-//console.log('There are'+ a[1].value + ' ' +a[1].key + 'legs in my house.');
 
-    
     // Dimension by full date
-    var dateDimension = nikeData.dimension(function (d) {
+    var dateDimension = nData.dimension(function (d) {
         return d.dd;
     });
-
 
     var minDate = dateDimension.bottom(1)[0].dd;
     var maxDate = dateDimension.top(1)[0].dd;
 
     // Dimension by month
-    var byMonth = nikeData.dimension(function (d) {
+    var byMonth = nData.dimension(function (d) {
         return d.month;
     });
 
     var volumeByMonthGroup = byMonth.group().reduceSum(function (d) {
         return d.Measurement;
     });
-    
 
     // Summarize volume by quarter
-    var quarter = nikeData.dimension(function (d) {
+    var quarter = nData.dimension(function (d) {
         var month = d.dd.getMonth();
         if (month <= 2) {
             return 'Q1';
@@ -117,48 +107,49 @@ d3.csv('../dist/BATBI-n-changed.csv', function (data) {
         return d.Measurement;
     });
 
-    var containerTypes = nikeData.dimension(function (d) {
+    var containerTypes = nData.dimension(function (d) {
         return d.ContainerType;
     });
     var containerTypesGroup = containerTypes.group();
     
-    var shipmentTypes = nikeData.dimension(function (d) {
+    var shipmentTypes = nData.dimension(function (d) {
         return d.ShipmentType;
     });
     var shipmentTypesGroup = shipmentTypes.group();
 
-    var originServices = nikeData.dimension(function (d) {
+    var originServices = nData.dimension(function (d) {
         return d.OriginService;
     });
     var originServicesGroup = originServices.group();
 
-    var destinationServices = nikeData.dimension(function (d) {
+    var destinationServices = nData.dimension(function (d) {
         return d.DestinationService;
     });
     var destinationServicesGroup = destinationServices.group();
 
     // Counts per weekday
-    var dayOfWeek = nikeData.dimension(function (d) {
+    var dayOfWeek = nData.dimension(function (d) {
         var day = d.dd.getDay();
         var name = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         return day + '.' + name[day];
     });
     var dayOfWeekGroup = dayOfWeek.group();
 
-    var originCountries = nikeData.dimension(function (d) {
+    var originCountries = nData.dimension(function (d) {
         return d.OriginCountry;
     });
     var originCountriesGroup = originCountries.group();
     
-    var destCountries = nikeData.dimension(function (d) {
+    var destCountries = nData.dimension(function (d) {
         return d.DestinationCountry;
     });
-    
+
     var destCountriesGroup = destCountries.group();
-//Wanted to use only top 20 for the chart, but was causing an error. Could be a good idea to fix it
+//Wanted to use only top 20 for the chart, but was causing an error. Could be a good idea to fix it. Also tried with fake group.
 //    var destCountriesTop20 = destCountries.top(20);
-    
-    nVolumeChart.width(700)
+
+//### Create charts
+    nVolumeChart.width(650)
         .height(140)
         .margins({
             top: 0,
@@ -169,7 +160,8 @@ d3.csv('../dist/BATBI-n-changed.csv', function (data) {
         .dimension(byMonth)
         .group(volumeByMonthGroup)
         .centerBar(true)
-        .gap(1)
+        .gap(2)
+        .ordinalColors(chartColours)
         .x(d3.time.scale().domain([minDate, maxDate]))
         .round(d3.time.month.round)
         .alwaysUseRounding(true)
@@ -181,6 +173,7 @@ d3.csv('../dist/BATBI-n-changed.csv', function (data) {
         .radius(80)
         .dimension(containerTypes)
         .group(containerTypesGroup)
+        .ordinalColors(chartColours)
         .label(function (d) {
             if (containerTypesChart.hasFilter() && !containerTypesChart.hasFilter(d.key)) {
                 return d.key + '(0%)';
@@ -198,6 +191,7 @@ d3.csv('../dist/BATBI-n-changed.csv', function (data) {
         .radius(80)
         .dimension(shipmentTypes)
         .group(shipmentTypesGroup)
+        .ordinalColors(chartColours)
         .label(function (d) {
             if (shipmentTypesChart.hasFilter() && !shipmentTypesChart.hasFilter(d.key)) {
                 return d.key + '(0%)';
@@ -214,6 +208,7 @@ d3.csv('../dist/BATBI-n-changed.csv', function (data) {
         .height(180)
         .radius(80)
         .innerRadius(30)
+        .ordinalColors(chartColours)
         .dimension(quarter)
         .group(quarterGroup);
 
@@ -228,7 +223,7 @@ d3.csv('../dist/BATBI-n-changed.csv', function (data) {
         })
         .group(originServicesGroup)
         .dimension(originServices)
-        .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef'])
+        .ordinalColors(chartColours)
         .label(function (d) {
             return d.key;
         })
@@ -249,7 +244,7 @@ d3.csv('../dist/BATBI-n-changed.csv', function (data) {
         })
         .group(destinationServicesGroup)
         .dimension(destinationServices)
-        .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef'])
+        .ordinalColors(chartColours)
         .label(function (d) {
             return d.key;
         })
@@ -271,7 +266,7 @@ d3.csv('../dist/BATBI-n-changed.csv', function (data) {
         .group(dayOfWeekGroup)
         .dimension(dayOfWeek)
         // Assign colors to each value in the x scale domain
-        .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+        .ordinalColors(chartColours)
         .label(function (d) {
             return d.key.split('.')[1];
         })
@@ -295,7 +290,7 @@ d3.csv('../dist/BATBI-n-changed.csv', function (data) {
         .fixedBarHeight(15)
         .group(originCountriesGroup)
         .dimension(originCountries)
-        .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef'])
+        .ordinalColors(chartColours)
         .label(function (d) {
             return d.key;
         })
@@ -304,7 +299,7 @@ d3.csv('../dist/BATBI-n-changed.csv', function (data) {
         })
         .elasticX(true)
         .xAxis().ticks(4);
-    
+
     destinationCountriesChart
         .width(250)
         .height(destCountriesGroup.size() * 17 + 40)
@@ -318,7 +313,7 @@ d3.csv('../dist/BATBI-n-changed.csv', function (data) {
         .fixedBarHeight(15)
         .group(destCountriesGroup)
         .dimension(destCountries)
-        .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef'])
+        .ordinalColors(chartColours)
         .label(function (d) {
             return d.key;
         })
@@ -327,6 +322,65 @@ d3.csv('../dist/BATBI-n-changed.csv', function (data) {
         })
         .elasticX(true)
         .xAxis().ticks(4);
+
+    nCount /* dc.dataCount('.dc-data-count', 'chartGroup'); */
+        .dimension(nData)
+        .group(all)
+        // (_optional_) `.html` sets different html when some records or all records are selected.
+        // `.html` replaces everything in the anchor with the html given using the following function.
+        // `%filter-count` and `%total-count` are replaced with the values obtained.
+        .html({
+            some: '<strong>%filter-count</strong> selected out of <strong>%total-count</strong> records' +
+                ' | <a href=\'javascript:dc.filterAll(); dc.renderAll();\'\'>Reset All</a>',
+            all: 'All records selected. Please click on the graph to apply filters.'
+        });
+
+    //TODO: Make pagination on table
+    dataTable /* dc.dataTable('.dc-data-table', 'chartGroup') */
+        .dimension(yearlyDimension)
+        // Data table does not use crossfilter group but rather a closure
+        // as a grouping function
+        .group(function (d) {
+            var format = d3.format('02d');
+            return d.dd.getFullYear() + '/' + format((d.dd.getMonth() + 1));
+        })
+        // (_optional_) max number of records to be shown, `default = 25`
+        .size(30)
+        // There are several ways to specify the columns; see the data-table documentation.
+        // This code demonstrates generating the column header automatically based on the columns.
+        .columns([
+            // Use the `d.date` field; capitalized automatically
+            'ETD',
+            'ContainerType',
+            'ShipmentType',
+            {
+                // Specify a custom format for column 'Origin / Destination' by using a label with a function.
+                label: 'Org.service/ Dest.service',
+                format: function (d) {
+                    return d.OriginService +' / '+ d.DestinationService;
+                }
+            },
+            {
+                // Specify a custom format for column 'Origin / Destination' by using a label with a function.
+                label: 'Origin/ Destination',
+                format: function (d) {
+                    return d.OriginCountry +' / '+ d.DestinationCountry;
+                }
+            },
+            // Use `d.volume`
+            'Measurement'
+        ])
+        // (_optional_) sort using the given field, `default = function(d){return d;}`
+        .sortBy(function (d) {
+            return d.dd;
+        })
+        // (_optional_) sort order, `default = d3.ascending`
+        .order(d3.ascending)
+        // (_optional_) custom renderlet to post-process chart using [D3](http://d3js.org)
+        .on('renderlet', function (table) {
+            table.selectAll('.dc-table-group').classed('info', true);
+        });
+
     //#### Rendering
 
     //simply call `.renderAll()` to render all charts on the page
@@ -340,10 +394,4 @@ d3.csv('../dist/BATBI-n-changed.csv', function (data) {
     // Or you can choose to redraw only those charts associated with a specific chart group
     dc.redrawAll('group');
     */
-
 });
-
-//#### Versions
-
-//Determine the current version of dc with `dc.version`
-d3.selectAll('#version').text(dc.version);
