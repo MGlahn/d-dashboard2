@@ -40,12 +40,14 @@ var dataTable = dc.dataTable('.dc-data-table');
 //Consignee,ContainerType,ShipmentType,OriginService,DestinationService,ETD,Measurement,OriginCountry,DestinationCountry
 //Customer1,DRY ,OCE,CFS, CFS,11/01/2014, 0.0000000000, MY,PP
 
-//To test with a smaller file use BATBI-N-changed.csv. Obs! data has been changed, so not representative
 
-d3.csv('../dist/BATBI-big.csv', function (data) {
+//NB: den henter data, men den fejler på noget string.slice i d3. Er ikke nået videre end til at hente dataen.
+d3.json('http://localhost:5000/api/', function (data) {
     // Since its a csv file we need to format the data a bit.
     //Dateformat with BATBI-N-changed.csv:
     //var dateFormat = d3.time.format('%Y-%m-%d');
+
+    console.log(data);
 
     var dateFormat = d3.time.format('%d/%m/%Y');
     var numberFormat = d3.format('.2f');
